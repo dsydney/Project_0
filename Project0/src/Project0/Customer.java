@@ -1,24 +1,33 @@
 package Project0;
 
-public class Customer {
+import java.io.Serializable;
 
+public class Customer implements Serializable {
+
+    boolean cancelled = false;
+    boolean approved = false;
     String username;
     String password;
     boolean accountType;
     double balance;
 
     // Deposit
-    double deposit(Double depositAmount) {
+    void deposit(double depositAmount) {
         balance += depositAmount;
-        return balance;
+        //return balance;
     }
 
     // Withdraw
-    double withdraw(Double withdrawAmount) {
+    void withdraw(double withdrawAmount) {
         balance -= withdrawAmount;
-        return balance;
+        //return balance;
     }
 
     // Transfer
+    void transfer(double transferAmount, Customer c) {
+        balance -= transferAmount;
+        c.balance += transferAmount;
+        //return balance;
+    }
 
 }

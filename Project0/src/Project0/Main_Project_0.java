@@ -1,5 +1,7 @@
 package Project0;
 
+import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -39,235 +41,540 @@ public class Main_Project_0 {
         // Create a map to store customer usernames (key) and their Object name (value)
         // When customers login, check the map to see if the customer exists in the map, and then
         // use their Object name to import their password, balance, and account type
-        //Customer c = arraylist<username>
 
-        // alternatively, store it all in an ArrayList of type arrayList<Customer>
+        HashMap<String, Customer> usernamesAndCustomerInfo = new HashMap<>();
+        ArrayList<Transaction> arrayListOfTransactions = new ArrayList<>();
 
+        if (ReadFile()!=null) {
 
-        // READ FILE
+            usernamesAndCustomerInfo = ReadFile();
 
+        }
 
-        String CustUsername;
-        String CustPassword;
-        Boolean AccountTypeSingle;
+        if (ReadListOfTransactions()!=null) {
 
-        HashMap<String, Customer> usernames = new HashMap<String, Customer>();
+            arrayListOfTransactions = ReadListOfTransactions();
 
-
-
+        }
 
         // Welcome Page
         // Outputs "Customer or Employee?"
 
         Scanner sc = new Scanner(System.in);
 
-        System.out.println("Welcome to Sydney Central Bank");
+        System.out.println("-----------------------------\n\nWelcome to Sydney Central Bank\n\n");
+
         String welcome = "";
-        while (!welcome.equals("c") && !welcome.equals("e")) {
-            System.out.println("Are you a Customer (Enter 'c'), or an Employee (Enter 'e')?");
+
+        while (!welcome.equals("1") && !welcome.equals("2")) {
+
+            System.out.println("Are you a Customer, or an Employee?\n\n(1) Customer\n(2) Employee");
+
             welcome = sc.next();
-        };
-        if (welcome .equals("c")) {
-            System.out.println("You are a customer");
 
-            // Customer Homepage
-            // Output "Register or Login?"
-            // Accept input and direct user
+        }
 
-            //Scanner sc = new Scanner(System.in);
+        if (welcome.equals("1")) {
 
-            System.out.println("Welcome to Customer Homepage");
+            System.out.println("\n----------Customer Homepage----------\n");
+
             String custLogin = "";
-            while (!custLogin.equals("l") && !custLogin.equals("r")) {
-                System.out.println("Login? (Enter 'l'), or Register? (Enter 'r')?");
+
+            while (!custLogin.equals("1") && !custLogin.equals("2")) {
+
+                System.out.println("(1) Login\n(2) Register");
+
                 custLogin = sc.next();
-            };
-            if (custLogin.equals("l")) {
-                //CustomerLogin();
-                // send to Customer Login
 
+            }
+            if (custLogin.equals("1")) {
 
-
-
-
-
+                CustomerLogin(usernamesAndCustomerInfo, arrayListOfTransactions);
 
             }
 
-            if (custLogin.equals("r")) {
+            if (custLogin.equals("2")) {
 
-                Customer x = CustomerRegistration();
-                usernames.put(x.username, x);
-                //CustomerRegistration(); // Add to arraylist
-                // send to Customer Registration
+                Customer newCustomer = CustomerRegistration();
+                usernamesAndCustomerInfo.put(newCustomer.username, newCustomer);
+                WriteToFile(usernamesAndCustomerInfo);
 
-                CustomerLogin(usernames);
-
-
-
-
+                main(null);
+                //CustomerLogin(usernamesAndCustomerInfo, arrayListOfTransactions);
 
             }
 
-            //CustomerHomepage();
-        } // Send to Customer Homepage
+        }
 
-        if (welcome .equals("e")) {
-            System.out.println("You are an employee");
-            EmployeeLogin();
-        } // Send to Employee Login
+        if (welcome.equals("2")) {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //WelcomePage();
-
-        // Logout
-        // Returns to Welcome Page
-
-
-        // WRITE TO FILE
+            EmployeeLogin(usernamesAndCustomerInfo, arrayListOfTransactions);
+        }
 
     } // End Main Method
 
-    public static void WelcomePage() {
+    public static void WriteToFile(HashMap<String, Customer> c) {
+
+        try {
+            FileOutputStream fileOut = new FileOutputStream("ListOfCustomers.ser");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(c);
+            out.close();
+            fileOut.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addTransaction(ArrayList<Transaction> t, String username, String transactionType, String targetUser, double transactionAmount) {
+
+        Transaction transaction = new Transaction(username, transactionType, targetUser, transactionAmount);
+        t.add(transaction);
+        logTransaction(t);
+    }
+
+    public static void logTransaction(ArrayList<Transaction> t) {
+
+        try {
+            FileOutputStream fileOut = new FileOutputStream("ListOfTransactions.ser");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(t);
+            out.close();
+            fileOut.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
-    public static void CustomerHomepage() {
+    public static ArrayList<Transaction> ReadListOfTransactions() {
 
+        ArrayList<Transaction> t = null;
 
+        try {
+            FileInputStream fileIn = new FileInputStream("ListOfTransactions.ser");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            t = (ArrayList<Transaction>) in.readObject();
+            in.close();
+            fileIn.close();
+        }
+        catch (IOException e) {}
+        catch (ClassNotFoundException ee) {
+            ee.printStackTrace();
+        } // End Try Block
+
+        return t;
 
     }
 
-    public static void CustomerLogin(HashMap<String, Customer> usernames) {
+    public static HashMap<String, Customer> ReadFile() {
+
+        HashMap<String, Customer> p = null;
+
+        try {
+            FileInputStream fileIn = new FileInputStream("ListOfCustomers.ser");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            p = (HashMap<String, Customer>) in.readObject();
+            in.close();
+            fileIn.close();
+        }
+        catch (IOException e) {}
+        catch (ClassNotFoundException ee) {
+            ee.printStackTrace();
+        } // End Try Block
+
+        return p;
+
+    }
+
+    public static void CustomerLogin(HashMap<String, Customer> usernamesAndCustomerInfo, ArrayList<Transaction> arrayListOfTransactions) {
 
         Scanner sc = new Scanner(System.in);
 
+        if (ReadFile()==null) {
+
+            System.out.println("\nNo Customers yet\n");
+            main(null);
+
+        } else {
+
+            usernamesAndCustomerInfo = ReadFile();
+
+        }
+
         // Customer Login
-        System.out.println("Welcome to Customer Login");
         // Accepts established credentials and compares to saved value
-        System.out.println("Enter username: ");
-        // needs to search a list or map for the username
-        // if arraylist contains username...
+        System.out.print("Enter username: ");
+
         String testingUsername = sc.next();
-        // if people<> contains testingUsername...
-        if (usernames.containsKey(testingUsername)) {
-            System.out.println("Enter password: ");
-            if (sc.next().equals(usernames.get(testingUsername).password)) {
-                System.out.println("Welcome customer!");
-                //AccountBalancePage(c);
+
+        if (usernamesAndCustomerInfo.containsKey(testingUsername)) {
+            System.out.print("\nEnter password: ");
+            if (sc.next().equals(usernamesAndCustomerInfo.get(testingUsername).password)) {
+
+                AccountBalancePage(usernamesAndCustomerInfo.get(testingUsername), usernamesAndCustomerInfo, arrayListOfTransactions);
                 // Send to account balance page
 
-
-
-
-
             }
+
             else {
+
                 System.out.println("Incorrect");
-                WelcomePage();
+
+                CustomerLogin(usernamesAndCustomerInfo, arrayListOfTransactions);
+
             }
+
         }
+
         else {
+
             System.out.println("Incorrect");
-            WelcomePage();
+
+            main(null);
+
         }
-        // Returns Login (sends to account balance page) or Fail
 
     }
 
     public static Customer CustomerRegistration() {
+        // Accepts credentials and saves them
 
         Scanner sc = new Scanner(System.in);
 
         Customer c = new Customer();
-        // Customer Registration
-        // Accepts credentials and saves them
-        System.out.println("Enter new username: ");
-        c.username = sc.next();
-        System.out.println("Enter new password: ");
-        c.password = sc.next();
-        // Asks whether they want Single or Joint account type
-        System.out.println("Do you want a Single Account (enter s) or Joint Account (enter any other key)? ");
-        if (sc.next().equals("s")) {
-            c.accountType = true;
-        }
-        else {
-            c.accountType = false;
-        }
 
-        // needs to create a new instance of Customer class
-        // add new customer to map
+        System.out.println("Enter new username: ");
+
+        c.username = sc.next();
+
+        System.out.println("Enter new password: ");
+
+        c.password = sc.next();
+
+        System.out.println("Do you want a Single Account (enter s) or Joint Account (enter any other key)? ");
+
+        c.accountType = sc.next().equals("s");
+
+        System.out.println("\nThank you for applying for a new account. Your application will be reviewed for approval\n");
 
         return c;
 
-        //CustomerLogin();
-
     }
 
-    public static void AccountBalancePage(Customer c) {
+    public static void AccountBalancePage(Customer c, HashMap<String, Customer> x, ArrayList<Transaction> t) {
+
+        System.out.println("\n-----" + c.username + "'s Account-----\n");
+
+        // Check to see if customer is approved
+        if (c.cancelled) {
+            System.out.println("Your account has been cancelled");
+            System.exit(0);
+        }
+        else if (!c.approved) {
+            System.out.println("Your account has not been approved yet\n\n");
+            main(null);
+        }
 
         Scanner sc = new Scanner(System.in);
 
         // Account Balance Page
         // Displays account balances
-        System.out.println("Welcome " + c.username);
         System.out.println("You balance is " + c.balance);
         // Offers Deposit, Withdraw, or Transfer options, Logout
-        System.out.println("How much would you like to deposit?");
-        c.deposit(sc.nextDouble());
+        System.out.println("(1) Deposit\n(2) Withdraw\n(3) Transfer\n(4) Logout");
 
-        System.out.println("How much would you like to withdraw?");
-        c.withdraw(sc.nextDouble());
+        String userChoice = sc.next();
 
-        System.out.println("You balance is " + c.balance);
+        switch (userChoice) {
+            case "1" -> {
+                System.out.println("How much would you like to deposit?");
+                try {
+                    double amount = Double.parseDouble(sc.next());
+                    c.deposit(amount);
+                    addTransaction(t, c.username, "deposit", null, amount);
+                } catch (Exception e) {
+                    System.out.println("Sorry, I didn't recognize that");
+                }
+                AccountBalancePage(c, x, t);
+            }
+            case "2" -> {
+                System.out.println("How much would you like to withdraw?");
+                try {
+                    double amount = Double.parseDouble(sc.next());
+                    c.withdraw(amount);
+                    addTransaction(t, c.username, "withdraw", null, amount);
+                } catch (Exception e) {
+                    System.out.println("Sorry, I didn't recognize that");
+                }
+                AccountBalancePage(c, x, t);
+            }
+            case "3" -> {
+                System.out.println("Who would you like to transfer to? (Enter their username: )");
+                String targetUser = sc.next();
+                System.out.println("How much would you like to transfer? ");
+                try {
 
-        //WelcomePage(c);
+                    double amount = Double.parseDouble(sc.next());
+
+                    if (x.containsKey(targetUser)) {
+                        c.transfer(amount, x.get(targetUser));
+                        addTransaction(t, c.username, "transfer", targetUser, amount);
+                    } else {
+                        System.out.println("Sorry, I didn't recognize that username");
+                    }
+                } catch (Exception e) {
+                    System.out.println("Sorry, I didn't recognize that");
+                }
+                AccountBalancePage(c, x, t);
+            }
+            case "4" -> main(null);
+            default -> {
+                System.out.println("Sorry, I didn't recognize that");
+                AccountBalancePage(c, x, t);
+            }
+        }
+
+        System.out.println("Your balance is " + c.balance);
+
+        x.put(c.username, c);
+        WriteToFile(x);
+
+        main(null);
 
     }
 
-    public static void EmployeeLogin() {
+    public static void EmployeeLogin(HashMap<String, Customer> usernamesAndCustomerInfo, ArrayList<Transaction> arrayListOfTransactions) {
 
         Scanner sc = new Scanner(System.in);
 
         String EmpUsername = "Admin";
         String EmpPassword = "admin";
 
-        // Employee Login
-        System.out.println("Welcome to Employee Login");
-        // Accepts credentials: "Admin" and "admin" or something
-        System.out.println("Enter username: ");
+        System.out.println("\n--------Employee Login--------\n");
+
+        System.out.print("Enter username: ");
+
         if (sc.next().equals(EmpUsername)) {
-            System.out.println("Enter password: ");
+
+            System.out.print("\nEnter password: ");
+
             if (sc.next().equals(EmpPassword)) {
-                System.out.println("Welcome Employee!");
-                EmployeePage();
-                // Send to Employee page
+
+                //System.out.println("\nWelcome Employee!");
+
+                EmployeePage(usernamesAndCustomerInfo, arrayListOfTransactions);
+
             }
+
             else {
-                System.out.println("Incorrect");
-                WelcomePage();
+
+                System.out.println("\nIncorrect password");
+                EmployeeLogin(usernamesAndCustomerInfo, arrayListOfTransactions);
+
             }
+
         }
+
         else {
-            System.out.println("Incorrect");
-            WelcomePage();
+
+            System.out.println("\nIncorrect\n");
+            main(null);
+
         }
+
     }
 
-    public static void EmployeePage() {
-        // Can view, edit, approve/deny Customer Accounts, Logout
+    public static void EmployeePage(HashMap<String, Customer> usernamesAndCustomerInfo, ArrayList<Transaction> arrayListOfTransactions) {
+
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("\n--------Employee Page--------\n");
+
+        System.out.print("(1) Logout\n(2) See all transactions\n(3) View a Customer\n");
+
+        switch (sc.next()) {
+            case "1": {
+
+                main(null);
+
+            } case "2": {
+
+                if (ReadListOfTransactions() == null) {
+
+                    System.out.println("\nNo transactions yet");
+
+                    EmployeePage(usernamesAndCustomerInfo, arrayListOfTransactions);
+
+                } else {
+
+                    System.out.println("Reading file...");
+                    arrayListOfTransactions = ReadListOfTransactions();
+
+                    System.out.println("\n--------------------------------\n");
+
+                    for (Transaction transaction : arrayListOfTransactions) {
+
+                        System.out.println("Transaction #" + (arrayListOfTransactions.indexOf(transaction)+1));
+                        System.out.println("Username: " + transaction.username);
+                        System.out.println("Transaction Type: " + transaction.transactionType);
+                        System.out.println("Target User, if applicable: " + transaction.targetUser);
+                        System.out.println("Amount: " + transaction.transactionAmount);
+                        System.out.println("\n--------------------------------\n");
+
+                    }
+
+                }
+
+                EmployeePage(usernamesAndCustomerInfo, arrayListOfTransactions);
+
+            } case "3": {
+
+                if (usernamesAndCustomerInfo.isEmpty()) {
+
+                    System.out.println("\nThere are no customers yet\n");
+
+                    main(null);
+
+                }
+
+                System.out.println("\nWho would you like to view? " + usernamesAndCustomerInfo.keySet());
+
+                String user = sc.next();
+
+                if (usernamesAndCustomerInfo.containsKey(user)) {
+
+                    if (usernamesAndCustomerInfo.get(user).cancelled) { //If the user was already canceled, they are still in the system but cannot be accessed or used
+
+                        System.out.println("\nThis account has been cancelled");
+
+                        EmployeeLogin(usernamesAndCustomerInfo, arrayListOfTransactions);
+
+                    } else if (!usernamesAndCustomerInfo.get(user).approved) { //This block allows any employee to approve a new user
+
+                        System.out.println("\nThis account has not been approved yet. Would you like to approve it? ");
+
+                        System.out.print("Enter your password to approve or press any other key to deny: ");
+
+                        if (sc.next().equals("admin")) {
+
+                            System.out.println("\nUser approved");
+
+                            usernamesAndCustomerInfo.get(user).approved = true;
+
+                            WriteToFile(usernamesAndCustomerInfo);
+
+                        } else {
+
+                            System.out.println("\nUser denied");
+                            System.exit(0);
+
+                        }
+
+                    } else { //This block allows the bank manager, but not the bank employee, to cancel any user
+
+                        System.out.println("\nWould you like to Cancel this account? ");
+
+                        System.out.print("Enter bank manager password to cancel or press any other key to continue: ");
+
+                        if (sc.next().equals("admin123")) {
+
+                            System.out.println("\nUser Canceled");
+
+                            usernamesAndCustomerInfo.get(user).cancelled = true;
+
+                            WriteToFile(usernamesAndCustomerInfo);
+
+                            System.exit(0);
+
+                        }
+
+                    }
+
+
+                    System.out.println("\n" + user + " has a balance of " + usernamesAndCustomerInfo.get(user).balance);
+
+                    System.out.print("\nHow much would you like to deposit?: ");
+
+                    try {
+                        double amount = Double.parseDouble(sc.next());
+                        usernamesAndCustomerInfo.get(user).deposit(amount);
+                        addTransaction(arrayListOfTransactions, usernamesAndCustomerInfo.get(user).username, "deposit", null, amount);
+                    } catch (Exception e) {
+                        System.out.println("Sorry, I didn't recognize that");
+                    }
+
+
+                    System.out.print("\nHow much would you like to withdraw?: ");
+
+                    try {
+                        double amount = Double.parseDouble(sc.next());
+                        usernamesAndCustomerInfo.get(user).withdraw(amount);
+                        addTransaction(arrayListOfTransactions, usernamesAndCustomerInfo.get(user).username, "withdraw", null, amount);
+                    } catch (Exception e) {
+                        System.out.println("Sorry, I didn't recognize that");
+                    }
+
+
+                    System.out.println("\nWould you like to transfer?\n(1) Transfer\n(2) Continue");
+
+                    if (sc.next().equals("1")) {
+
+                        System.out.print("\nWho would you like to transfer to? Enter their username: ");
+
+                        String targetUser = sc.next();
+
+                        System.out.print("\nHow much would you like to transfer?: ");
+
+                        double amount;
+
+                        try {
+
+                            amount = Double.parseDouble(sc.next());
+
+                            if (usernamesAndCustomerInfo.containsKey(targetUser)) {
+
+                                usernamesAndCustomerInfo.get(user).transfer(amount, usernamesAndCustomerInfo.get(targetUser));
+                                addTransaction(arrayListOfTransactions, usernamesAndCustomerInfo.get(user).username, "transfer", targetUser, amount);
+
+                                System.out.println("\n" + targetUser + " has a new balance of " + usernamesAndCustomerInfo.get(targetUser).balance);
+
+                            } else {
+
+                                System.out.println("\nInvalid entry");
+
+                            }
+
+                        } catch (Exception e) {
+                            System.out.println("Sorry, I didn't recognize that");
+                        }
+                    }
+
+                    System.out.println(user + " has a balance of " + usernamesAndCustomerInfo.get(user).balance);
+
+                    usernamesAndCustomerInfo.put(usernamesAndCustomerInfo.get(user).username, usernamesAndCustomerInfo.get(user));
+
+                    WriteToFile(usernamesAndCustomerInfo);
+
+                    EmployeePage(usernamesAndCustomerInfo, arrayListOfTransactions);
+
+                } else {
+
+                    System.out.println("Invalid entry");
+
+                    EmployeePage(usernamesAndCustomerInfo, arrayListOfTransactions);
+
+                }
+            } default :
+
+                System.out.println("\nSorry, I didn't recognize that");
+
+                EmployeePage(usernamesAndCustomerInfo, arrayListOfTransactions);
+
+        }
     }
 
 }
+
