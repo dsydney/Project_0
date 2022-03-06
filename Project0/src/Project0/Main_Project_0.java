@@ -57,9 +57,6 @@ public class Main_Project_0 {
 
         }
 
-        // Welcome Page
-        // Outputs "Customer or Employee?"
-
         Scanner sc = new Scanner(System.in);
 
         System.out.println("-----------------------------\n\nWelcome to Sydney Central Bank\n\n");
@@ -127,9 +124,9 @@ public class Main_Project_0 {
         }
     }
 
-    public static void addTransaction(ArrayList<Transaction> t, String username, String transactionType, String targetUser, double transactionAmount) {
+    public static void addTransaction(ArrayList<Transaction> t, String username, String transactionType, String targetUser, double transactionAmount, double previousBalance, double subsequentBalance) {
 
-        Transaction transaction = new Transaction(username, transactionType, targetUser, transactionAmount);
+        Transaction transaction = new Transaction(username, transactionType, targetUser, transactionAmount, previousBalance, subsequentBalance);
         t.add(transaction);
         logTransaction(t);
     }
@@ -293,8 +290,16 @@ public class Main_Project_0 {
                 System.out.println("How much would you like to deposit?");
                 try {
                     double amount = Double.parseDouble(sc.next());
-                    c.deposit(amount);
-                    addTransaction(t, c.username, "deposit", null, amount);
+                    if (amount > 0) {
+                        amount = Math.round(amount*100);
+                        amount = amount/100;
+                        c.deposit(amount);
+                        addTransaction(t, c.username, "deposit", null, amount, (c.balance - amount), c.balance);
+                        WriteToFile(x);
+                    }
+                    else {
+                        System.out.println("Sorry, number must be positive");
+                    }
                 } catch (Exception e) {
                     System.out.println("Sorry, I didn't recognize that");
                 }
@@ -304,8 +309,16 @@ public class Main_Project_0 {
                 System.out.println("How much would you like to withdraw?");
                 try {
                     double amount = Double.parseDouble(sc.next());
-                    c.withdraw(amount);
-                    addTransaction(t, c.username, "withdraw", null, amount);
+                    if (amount > 0 ) {
+                        amount = Math.round(amount * 100);
+                        amount = amount / 100;
+                        c.withdraw(amount);
+                        addTransaction(t, c.username, "withdraw", null, amount, (c.balance + amount), c.balance);
+                        WriteToFile(x);
+                    }
+                    else {
+                        System.out.println("Sorry, number must be positive");
+                    }
                 } catch (Exception e) {
                     System.out.println("Sorry, I didn't recognize that");
                 }
@@ -320,8 +333,17 @@ public class Main_Project_0 {
                     double amount = Double.parseDouble(sc.next());
 
                     if (x.containsKey(targetUser)) {
+                        if (amount > 0) {
+                        amount = Math.round(amount*100);
+                        amount = amount/100;
                         c.transfer(amount, x.get(targetUser));
-                        addTransaction(t, c.username, "transfer", targetUser, amount);
+                        addTransaction(t, c.username, "transfer", targetUser, amount, (c.balance + amount), c.balance);
+                        WriteToFile(x);
+                        System.out.println("\n" + targetUser + " has a new balance of " + x.get(targetUser).balance);
+                        }
+                        else {
+                            System.out.println("Sorry, number must be positive");
+                        }
                     } else {
                         System.out.println("Sorry, I didn't recognize that username");
                     }
@@ -422,6 +444,8 @@ public class Main_Project_0 {
                         System.out.println("Transaction Type: " + transaction.transactionType);
                         System.out.println("Target User, if applicable: " + transaction.targetUser);
                         System.out.println("Amount: " + transaction.transactionAmount);
+                        System.out.println("Previous Balance: " + transaction.previousBalance);
+                        System.out.println("Subsequent Balance: " + transaction.subsequentBalance);
                         System.out.println("\n--------------------------------\n");
 
                     }
@@ -500,8 +524,17 @@ public class Main_Project_0 {
 
                     try {
                         double amount = Double.parseDouble(sc.next());
+                        if (amount > 0) {
+                        amount = Math.round(amount*100);
+                        amount = amount/100;
                         usernamesAndCustomerInfo.get(user).deposit(amount);
-                        addTransaction(arrayListOfTransactions, usernamesAndCustomerInfo.get(user).username, "deposit", null, amount);
+                        addTransaction(arrayListOfTransactions, usernamesAndCustomerInfo.get(user).username, "deposit", null, amount, (usernamesAndCustomerInfo.get(user).balance - amount), usernamesAndCustomerInfo.get(user).balance);
+                        WriteToFile(usernamesAndCustomerInfo);
+                        }
+                        else {
+                            System.out.println("Sorry, number must be positive");
+                        }
+
                     } catch (Exception e) {
                         System.out.println("Sorry, I didn't recognize that");
                     }
@@ -511,8 +544,17 @@ public class Main_Project_0 {
 
                     try {
                         double amount = Double.parseDouble(sc.next());
+                        if (amount > 0) {
+                        amount = Math.round(amount*100);
+                        amount = amount/100;
                         usernamesAndCustomerInfo.get(user).withdraw(amount);
-                        addTransaction(arrayListOfTransactions, usernamesAndCustomerInfo.get(user).username, "withdraw", null, amount);
+                        addTransaction(arrayListOfTransactions, usernamesAndCustomerInfo.get(user).username, "withdraw", null, amount, (usernamesAndCustomerInfo.get(user).balance + amount), usernamesAndCustomerInfo.get(user).balance);
+                        WriteToFile(usernamesAndCustomerInfo);
+                        }
+                        else {
+                            System.out.println("Sorry, number must be positive");
+                        }
+
                     } catch (Exception e) {
                         System.out.println("Sorry, I didn't recognize that");
                     }
@@ -536,10 +578,19 @@ public class Main_Project_0 {
 
                             if (usernamesAndCustomerInfo.containsKey(targetUser)) {
 
+                                if (amount > 0) {
+                                amount = Math.round(amount*100);
+                                amount = amount/100;
                                 usernamesAndCustomerInfo.get(user).transfer(amount, usernamesAndCustomerInfo.get(targetUser));
-                                addTransaction(arrayListOfTransactions, usernamesAndCustomerInfo.get(user).username, "transfer", targetUser, amount);
-
+                                addTransaction(arrayListOfTransactions, usernamesAndCustomerInfo.get(user).username, "transfer", targetUser, amount, (usernamesAndCustomerInfo.get(user).balance + amount), usernamesAndCustomerInfo.get(user).balance);
+                                WriteToFile(usernamesAndCustomerInfo);
                                 System.out.println("\n" + targetUser + " has a new balance of " + usernamesAndCustomerInfo.get(targetUser).balance);
+
+                                }
+                                else {
+                                    System.out.println("Sorry, number must be positive");
+                                }
+
 
                             } else {
 
